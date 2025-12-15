@@ -1,0 +1,173 @@
+#include "phonebook.h"
+#include <algorithm>
+#include <QDebug>
+
+PhoneBook::PhoneBook(QObject* parent)
+    : QObject(parent)
+    , m_nextId(1)
+{
+}
+
+bool PhoneBook::addContact(const Contact& contact)
+{
+    // Создаем копию контакта с новым ID
+    Contact newContact = contact;
+    newContact = Contact(m_nextId++,
+        contact.name(),
+        contact.email(),
+        contact.birthday(),
+        contact.addedDate());
+
+    m_contacts.append(newContact);
+    emit dataChanged();
+    return true;
+}
+
+bool PhoneBook::removeContact(int id)
+{
+    auto it = std::remove_if(m_contacts.begin(), m_contacts.end(),
+        [id](const Contact& contact) { return contact.id() == id; });
+
+    if (it != m_contacts.end()) {
+        m_contacts.erase(it, m_contacts.end());
+        emit dataChanged();
+        return true;
+    }
+    return false;
+}
+
+bool PhoneBook::updateContact(const Contact& contact)
+{
+    for (auto& c : m_contacts) {
+        if (c.id() == contact.id()) {
+            c = contact;
+            emit dataChanged();
+            return true;
+        }
+    }
+    return false;
+}
+
+Contact PhoneBook::getContact(int id) const
+{
+    for (const auto& contact : m_contacts) {
+        if (contact.id() == id) {
+            return contact;
+        }
+    }
+    return Contact();
+}
+
+QList<Contact> PhoneBook::getAllContacts() const
+{
+    return m_contacts;
+}
+
+QList<Contact> PhoneBook::search(const QString& query) const
+{
+    if (query.isEmpty()) {
+        return m_contacts;
+    }
+
+    QList<Contact> results;
+    QString searchTerm = query.toLower();
+
+    for (const auto& contact : m_contacts) {
+        if (contact.name().toLower().contains(searchTerm) ||
+            contact.email().toLower().contains(searchTerm) ||
+            contact.birthday().toString("dd.MM.yyyy").contains(searchTerm) ||
+            contact.addedDate().toString("dd.MM.yyyy").contains(searchTerm) ||
+            QString::number(contact.id()).contains(searchTerm)) {
+            results.append(contact);
+        }
+    }
+
+    return results;
+}
+
+void PhoneBook::sortByColumn(SortColumn column, Qt::SortOrder order)
+{
+    std::sort(m_contacts.begin(), m_contacts.end(),
+        [column, order](const Contact& a, const Contact& b) {
+            bool result = false;
+
+            switch (column) {
+            case SortById:
+                result = a.id() < b.id();
+                break;
+            case SortByName:
+                result = a.name().toLower() < b.name().toLower();
+                break;
+            case SortByEmail:
+                result = a.email().toLower() < b.email().toLower();
+                break;
+            case SortByBirthday:
+                result = a.birthday() < b.birthday();
+                break;
+            case SortByAddedDate:
+                result = a.addedDate() < b.addedDate();
+                break;
+            }
+
+            return order == Qt::AscendingOrder ? result : !result;
+        });
+
+    emit dataChanged();
+}
+
+void PhoneBook::loadDefaultContacts()
+{
+    clear();
+    m_contacts = generateDefaultContacts();
+
+    // Находим максимальный ID
+    int maxId = 0;
+    for (const auto& contact : m_contacts) {
+        if (contact.id() > maxId) {
+            maxId = contact.id();
+        }
+    }
+    m_nextId = maxId + 1;
+
+    emit dataChanged();
+}
+
+void PhoneBook::clear()
+{
+    m_contacts.clear();
+    m_nextId = 1;
+    emit dataChanged();
+}
+
+int PhoneBook::count() const
+{
+    return m_contacts.size();
+}
+
+QList<Contact> PhoneBook::generateDefaultContacts()
+{
+    QList<Contact> contacts;
+
+    contacts << Contact(1, "Иванов Иван Иванович", "ivanov@mail.com",
+        QDate(1985, 5, 15), QDate(2023, 1, 10));
+    contacts << Contact(2, "Петров Петр Петрович", "petrov@mail.com",
+        QDate(1990, 8, 22), QDate(2023, 1, 12));
+    contacts << Contact(3, "Сидорова Анна Владимировна", "sidorova@mail.com",
+        QDate(1988, 3, 30), QDate(2023, 1, 15));
+    contacts << Contact(4, "Кузнецов Алексей Сергеевич", "kuznetsov@mail.com",
+        QDate(1995, 11, 5), QDate(2023, 2, 1));
+    contacts << Contact(5, "Смирнова Елена Дмитриевна", "smirnova@mail.com",
+        QDate(1992, 7, 18), QDate(2023, 2, 3));
+    contacts << Contact(6, "Васильев Дмитрий Алексеевич", "vasilyev@mail.com",
+        QDate(1983, 9, 25), QDate(2023, 2, 10));
+    contacts << Contact(7, "Павлова Ольга Игоревна", "pavlova@mail.com",
+        QDate(1998, 12, 12), QDate(2023, 2, 15));
+    contacts << Contact(8, "Николаев Михаил Петрович", "nikolaev@mail.com",
+        QDate(1979, 4, 7), QDate(2023, 2, 20));
+    contacts << Contact(9, "Федорова Мария Сергеевна", "fedorova@mail.com",
+        QDate(1991, 6, 9), QDate(2023, 3, 1));
+    contacts << Contact(10, "Дмитриев Андрей Владимирович", "dmitriev@mail.com",
+        QDate(1987, 2, 28), QDate(2023, 3, 5));
+
+    return contacts;
+}
