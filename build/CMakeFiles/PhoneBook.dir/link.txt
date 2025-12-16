@@ -1,0 +1,3 @@
+C:\Qt5\Tools\CMake_64\bin\cmake.exe -E rm -f CMakeFiles\PhoneBook.dir/objects.a
+C:\Qt5\Tools\mingw810_32\bin\ar.exe cr CMakeFiles\PhoneBook.dir/objects.a @CMakeFiles\PhoneBook.dir\objects1.rsp
+C:\Qt5\Tools\mingw810_32\bin\g++.exe -Wl,--whole-archive CMakeFiles\PhoneBook.dir/objects.a -Wl,--no-whole-archive -o PhoneBook.exe -Wl,--out-implib,libPhoneBook.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\PhoneBook.dir\linklibs.rsp

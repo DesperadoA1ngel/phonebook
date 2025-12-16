@@ -1,0 +1,4 @@
+C:/Projects/phonebook/build/CMakeFiles/PhoneBook.dir
+C:/Projects/phonebook/build/CMakeFiles/edit_cache.dir
+C:/Projects/phonebook/build/CMakeFiles/rebuild_cache.dir
+C:/Projects/phonebook/build/CMakeFiles/PhoneBook_autogen.dir
